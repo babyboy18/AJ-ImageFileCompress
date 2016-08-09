@@ -1,1 +1,1 @@
-# AJ-ImageFileCompress
+# AJCompress
