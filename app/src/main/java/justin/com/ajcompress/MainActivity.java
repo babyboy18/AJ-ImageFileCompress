@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private void compress(File file) {
         AJCompress.create(this)
                 .loadFile(file)
-                .setLevel(AJCompress.FIRST_LEVEL)
+                .setLevel(AJCompress.THIRD_LEVEL)
                 .setOnCompressListener(new OnCompressListener() {
                     @Override
                     public void onStart() {

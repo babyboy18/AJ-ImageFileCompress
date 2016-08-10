@@ -31,10 +31,12 @@ public class AJCompress {
 
     private OnCompressListener mCompressListener;
     private File mFile;
-    private int mLevel = FIRST_LEVEL;
+    private int mLevel = THIRD_LEVEL;
 
-    private int mQuality = 80;
+    private int mQuality = 100;
+    private boolean mIsAutoQuality = true;
 
+    // 单位为kb
     private final int SIZE_LEVEL_60 = 60;
     private final int SIZE_LEVEL_80 = 80;
     private final int SIZE_LEVEL_100 = 100;
@@ -185,6 +187,7 @@ public class AJCompress {
         }
 
         mQuality = quality;
+        mIsAutoQuality = false;
         return this;
     }
 
@@ -197,6 +200,22 @@ public class AJCompress {
             return Observable.just(thirdCompress(mFile));
         } else {
             return Observable.empty();
+        }
+    }
+
+    /**
+     * 不使用线程进行压缩出来,使用此函数需要配合线程一起使用.
+     * @return 要缩后的图片地址
+     */
+    public File compress() {
+        if (mLevel == SECOND_LEVEL) {
+            return secondCompress(mFile);
+        } else if (mLevel == FIRST_LEVEL) {
+            return firstCompress(mFile);
+        } else if (mLevel == THIRD_LEVEL) {
+            return thirdCompress(mFile);
+        } else {
+            return null;
         }
     }
 
@@ -326,7 +345,7 @@ public class AJCompress {
     private File thirdCompress(File file) {
         try {
             String filePath = file.getAbsolutePath();
-            String thumb = mCacheDir.getAbsolutePath() + "/" + System.currentTimeMillis();
+            String thumbPath = mCacheDir.getAbsolutePath() + "/" + System.currentTimeMillis();
 
             double size;
 
@@ -377,7 +396,7 @@ public class AJCompress {
                 size = size < SIZE_LEVEL_120 ? SIZE_LEVEL_120 : size;
             }
 
-            return compress(filePath, thumb, thumbW, thumbH, angle, (long) size);
+            return compress(filePath, thumbPath, thumbW, thumbH, angle, (long) size);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -547,15 +566,20 @@ public class AJCompress {
         if (!result.exists() && !result.mkdirs()) return null;
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        int options = getCompressQuality(filePath, size);
-        bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
+        int quality = mQuality;
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
 
-        Log.e(TAG, "-----2----size:" + size + "----length:" + stream.toByteArray().length);
-        while (stream.toByteArray().length / 1024 > size) {
-            stream.reset();
-            options -= 6;
-            bitmap.compress(Bitmap.CompressFormat.JPEG, options, stream);
-            Log.e(TAG, "-----3----size:" + size + "----length:" + stream.toByteArray().length + "---options:" + options);
+        if (mIsAutoQuality) {
+            int totalLength = stream.toByteArray().length;
+            quality = getCompressQuality((double) totalLength / 1024);
+            Log.e(TAG, "-----2----size:" + size + "----length:" + stream.toByteArray().length);
+            while (stream.toByteArray().length / 1024 > size) {
+                stream.reset();
+                quality -= 6;
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
+                Log.e(TAG, "-----3----size:" + size + "----length:" + stream.toByteArray().length + "---options:" + quality);
+                Log.e(TAG, "-----4----size:" + size + "----length/totalLength:" + (double) stream.toByteArray().length / (double) totalLength);
+            }
         }
 
         FileOutputStream fos = null;
@@ -584,8 +608,22 @@ public class AJCompress {
         return new File(filePath);
     }
 
-    private int getCompressQuality(String filePath, long size) {
-        
+    private int getCompressQuality(double length) {
+        Log.e(TAG, "length:" + length);
+        if (mIsAutoQuality) {
+            if (length > 3072) {
+                return 30;
+            } else if (length > 2048) {
+                return 36;
+            } else if (length > 1400) {
+                return 46;
+            } else if (length > 1024) {
+                return 50;
+            } else if (length > 800) {
+                return 70;
+            }
+        }
+
         return mQuality;
     }
 }
