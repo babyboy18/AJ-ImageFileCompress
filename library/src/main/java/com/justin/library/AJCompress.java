@@ -22,7 +22,6 @@ public class AJCompress {
 
     public static final int FIRST_LEVEL = 1;
     public static final int SECOND_LEVEL = 2;
-    public static final int THIRD_LEVEL = 3;
 
     private static final String TAG = "AJCompress";
     public static String DEFAULT_DISK_CACHE_DIR = "ajcompress_diskcache";
@@ -31,7 +30,7 @@ public class AJCompress {
 
     private OnCompressListener mCompressListener;
     private File mFile;
-    private int mLevel = THIRD_LEVEL;
+    private int mLevel = FIRST_LEVEL;
 
     private int mQuality = 100;
     private boolean mIsAutoQuality = true;
@@ -196,8 +195,6 @@ public class AJCompress {
             return Observable.just(secondCompress(mFile));
         } else if (mLevel == FIRST_LEVEL) {
             return Observable.just(firstCompress(mFile));
-        } else if (mLevel == THIRD_LEVEL) {
-            return Observable.just(thirdCompress(mFile));
         } else {
             return Observable.empty();
         }
@@ -210,80 +207,11 @@ public class AJCompress {
     public File compress() {
         if (mLevel == SECOND_LEVEL) {
             return secondCompress(mFile);
-        } else if (mLevel == FIRST_LEVEL) {
+        }else if (mLevel == FIRST_LEVEL) {
             return firstCompress(mFile);
-        } else if (mLevel == THIRD_LEVEL) {
-            return thirdCompress(mFile);
         } else {
             return null;
         }
-    }
-
-    /**
-     * 一级压缩规则
-     * @param file
-     * @return
-     */
-    private File firstCompress(File file) {
-        try {
-            String filePath = file.getAbsolutePath();
-            String thumb = mCacheDir.getAbsolutePath() + "/" + System.currentTimeMillis();
-
-            double size;
-
-            int angle = getImageSpinAngle(filePath);
-            int[] imgSize = getImageSize(filePath);
-            int width = imgSize[0];
-            int height = imgSize[1];
-            int thumbW = width % 2 == 1 ? width + 1 : width;
-            int thumbH = height % 2 == 1 ? height + 1 : height;
-
-            width = thumbW > thumbH ? thumbH : thumbW;
-            height = thumbW > thumbH ? thumbW : thumbH;
-
-            double scale = ((double) width / height);
-
-            if (scale <= 1 && scale > 0.5625) {
-                if (height < 1664) {
-                    size = (width * height) / Math.pow(1664, 2) * SIZE_LEVEL_150;
-                    size = size < SIZE_LEVEL_60 ? SIZE_LEVEL_60 : size;
-                } else if (height >= 1664 && height < 4990) {
-                    thumbW = width / 2;
-                    thumbH = height / 2;
-                    size = (thumbW * thumbH) / Math.pow(2495, 2) * SIZE_LEVEL_300;
-                    size = size < SIZE_LEVEL_60 ? SIZE_LEVEL_60 : size;
-                } else if (height >= 4990 && height < 10240) {
-                    thumbW = width / 4;
-                    thumbH = height / 4;
-                    size = (thumbW * thumbH) / Math.pow(2560, 2) * SIZE_LEVEL_300;
-                    size = size < SIZE_LEVEL_100 ? SIZE_LEVEL_100 : size;
-                } else {
-                    int multiple = height / 1280 == 0 ? 1 : height / 1280;
-                    thumbW = width / multiple;
-                    thumbH = height / multiple;
-                    size = (thumbW * thumbH) / Math.pow(2560, 2) * SIZE_LEVEL_300;
-                    size = size < SIZE_LEVEL_100 ? SIZE_LEVEL_100 : size;
-                }
-            } else if (scale <= 0.5625 && scale > 0.5) {
-                int multiple = height / 1280 == 0 ? 1 : height / 1280;
-                thumbW = width / multiple;
-                thumbH = height / multiple;
-                size = (thumbW * thumbH) / (1440.0 * 2560.0) * SIZE_LEVEL_200;
-                size = size < SIZE_LEVEL_100 ? SIZE_LEVEL_100 : size;
-            } else {
-                int multiple = (int) Math.ceil(height / (1280.0 / scale));
-                thumbW = width / multiple;
-                thumbH = height / multiple;
-                size = ((thumbW * thumbH) / (1280.0 * (1280 / scale))) * SIZE_LEVEL_500;
-                size = size < SIZE_LEVEL_100 ? SIZE_LEVEL_100 : size;
-            }
-
-            return compress(filePath, thumb, thumbW, thumbH, angle, (long) size);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     /**
@@ -338,11 +266,11 @@ public class AJCompress {
     }
 
     /**
-     * 三级压缩规则
+     * 一级压缩规则
      * @param file
      * @return
      */
-    private File thirdCompress(File file) {
+    private File firstCompress(File file) {
         try {
             String filePath = file.getAbsolutePath();
             String thumbPath = mCacheDir.getAbsolutePath() + "/" + System.currentTimeMillis();
