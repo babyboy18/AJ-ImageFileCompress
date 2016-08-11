@@ -36,13 +36,11 @@ public class AJCompress {
     private boolean mIsAutoQuality = true;
 
     // 单位为kb
-    private final int SIZE_LEVEL_60 = 60;
-    private final int SIZE_LEVEL_80 = 80;
     private final int SIZE_LEVEL_100 = 100;
-    private final int SIZE_LEVEL_120 = 120;
     private final int SIZE_LEVEL_150 = 150;
     private final int SIZE_LEVEL_200 = 200;
-    private final int SIZE_LEVEL_300 = 300;
+    private final int SIZE_LEVEL_250 = 250;
+    private final int SIZE_LEVEL_350 = 350;
     private final int SIZE_LEVEL_500 = 500;
 
     /**
@@ -79,13 +77,19 @@ public class AJCompress {
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
             File result = new File(cacheDir, cacheName);
-            if (result != null && result.exists()) {
-                if (result.isDirectory()) {
-                    return result;
-                } else if (result.isFile()) {
-                    result.delete();
+            if (result != null) {
+                if (!result.exists()) {
                     if (result.mkdirs()) {
                         return result;
+                    }
+                } else {
+                    if (result.isDirectory()) {
+                        return result;
+                    } else if (result.isFile()) {
+                        result.delete();
+                        if (result.mkdirs()) {
+                            return result;
+                        }
                     }
                 }
             }
@@ -221,7 +225,7 @@ public class AJCompress {
      */
     private File secondCompress(File file) {
         try {
-            int minSize = SIZE_LEVEL_60;
+            int minSize = SIZE_LEVEL_100;
             int longSide = 720;
             int shortSide = 1280;
 
@@ -291,37 +295,37 @@ public class AJCompress {
 
             if (scale <= 1 && scale > 0.5625) {
                 if (height < 1664) {
-                    size = (width * height) / Math.pow(1664, 2) * SIZE_LEVEL_150;
-                    size = size < SIZE_LEVEL_80 ? SIZE_LEVEL_80 : size;
+                    size = (width * height) / Math.pow(1664, 2) * SIZE_LEVEL_250;
+                    size = size < SIZE_LEVEL_100 ? SIZE_LEVEL_100 : size;
                 } else if (height >= 1664 && height < 4990) {
                     thumbW = width / 2;
                     thumbH = height / 2;
-                    size = (thumbW * thumbH) / Math.pow(2495, 2) * SIZE_LEVEL_300;
-                    size = size < SIZE_LEVEL_80 ? SIZE_LEVEL_80 : size;
+                    size = (thumbW * thumbH) / Math.pow(2495, 2) * SIZE_LEVEL_350;
+                    size = size < SIZE_LEVEL_150 ? SIZE_LEVEL_150 : size;
                 } else if (height >= 4990 && height < 10240) {
                     thumbW = width / 4;
                     thumbH = height / 4;
-                    size = (thumbW * thumbH) / Math.pow(2560, 2) * SIZE_LEVEL_300;
-                    size = size < SIZE_LEVEL_120 ? SIZE_LEVEL_120 : size;
+                    size = (thumbW * thumbH) / Math.pow(2560, 2) * SIZE_LEVEL_350;
+                    size = size < SIZE_LEVEL_150 ? SIZE_LEVEL_150 : size;
                 } else {
                     int multiple = height / 1280 == 0 ? 1 : height / 1280;
                     thumbW = width / multiple;
                     thumbH = height / multiple;
-                    size = (thumbW * thumbH) / Math.pow(2560, 2) * SIZE_LEVEL_300;
-                    size = size < SIZE_LEVEL_120 ? SIZE_LEVEL_120 : size;
+                    size = (thumbW * thumbH) / Math.pow(2560, 2) * SIZE_LEVEL_350;
+                    size = size < SIZE_LEVEL_150 ? SIZE_LEVEL_150 : size;
                 }
             } else if (scale <= 0.5625 && scale > 0.5) {
                 int multiple = height / 1280 == 0 ? 1 : height / 1280;
                 thumbW = width / multiple;
                 thumbH = height / multiple;
-                size = (thumbW * thumbH) / (1440.0 * 2560.0) * SIZE_LEVEL_200;
-                size = size < SIZE_LEVEL_120 ? SIZE_LEVEL_120 : size;
+                size = (thumbW * thumbH) / (1440.0 * 2560.0) * SIZE_LEVEL_250;
+                size = size < SIZE_LEVEL_150 ? SIZE_LEVEL_150 : size;
             } else {
                 int multiple = (int) Math.ceil(height / (1280.0 / scale));
                 thumbW = width / multiple;
                 thumbH = height / multiple;
                 size = ((thumbW * thumbH) / (1280.0 * (1280 / scale))) * SIZE_LEVEL_500;
-                size = size < SIZE_LEVEL_120 ? SIZE_LEVEL_120 : size;
+                size = size < SIZE_LEVEL_200 ? SIZE_LEVEL_200 : size;
             }
 
             return compress(filePath, thumbPath, thumbW, thumbH, angle, (long) size);
