@@ -491,7 +491,7 @@ public class AJCompress {
      * @param size     the file size of image   期望大小
      */
     private File saveImage(String filePath, Bitmap bitmap, long size) {
-        Log.e(TAG, "-----1----size:" + size);
+        Log.i(TAG, "-----1----size:" + size);
 
         File result = new File(filePath.substring(0, filePath.lastIndexOf("/")));
 
@@ -504,13 +504,13 @@ public class AJCompress {
         if (mIsAutoQuality) {
             int totalLength = stream.toByteArray().length;
             quality = getCompressQuality((double) totalLength / 1024);
-            Log.e(TAG, "-----2----size:" + size + "----length:" + stream.toByteArray().length);
+            Log.i(TAG, "-----2----size:" + size + "----length:" + stream.toByteArray().length);
             while (stream.toByteArray().length / 1024 > size) {
                 stream.reset();
                 quality -= 6;
                 bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
-                Log.e(TAG, "-----3----size:" + size + "----length:" + stream.toByteArray().length + "---options:" + quality);
-                Log.e(TAG, "-----4----size:" + size + "----length/totalLength:" + (double) stream.toByteArray().length / (double) totalLength);
+                Log.i(TAG, "-----3----size:" + size + "----length:" + stream.toByteArray().length + "---options:" + quality);
+                Log.i(TAG, "-----4----size:" + size + "----length/totalLength:" + (double) stream.toByteArray().length / (double) totalLength);
             }
         }
 
@@ -541,7 +541,7 @@ public class AJCompress {
     }
 
     private int getCompressQuality(double length) {
-        Log.e(TAG, "length:" + length);
+        Log.i(TAG, "length:" + length);
         if (mIsAutoQuality) {
             if (length > 3072) {
                 return 30;
