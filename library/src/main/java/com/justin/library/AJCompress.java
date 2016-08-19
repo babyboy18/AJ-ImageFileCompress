@@ -5,12 +5,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -279,6 +283,13 @@ public class AJCompress {
             String filePath = file.getAbsolutePath();
             String thumbPath = mCacheDir.getAbsolutePath() + "/" + System.currentTimeMillis();
 
+            long length = file.length()/1024;
+            if (length < SIZE_LEVEL_100) {
+                if (copyFile(filePath, thumbPath)) {
+                    return new File(thumbPath);
+                }
+            }
+
             double size;
 
             int angle = getImageSpinAngle(filePath);
@@ -295,8 +306,8 @@ public class AJCompress {
 
             if (scale <= 1 && scale > 0.5625) {
                 if (height < 1664) {
-                    size = (width * height) / Math.pow(1664, 2) * SIZE_LEVEL_250;
-                    size = size < SIZE_LEVEL_100 ? SIZE_LEVEL_100 : size;
+                    size = (width * height) / Math.pow(1664, 2) * SIZE_LEVEL_350;
+                    size = size < SIZE_LEVEL_150 ? SIZE_LEVEL_150 : size;
                 } else if (height >= 1664 && height < 4990) {
                     thumbW = width / 2;
                     thumbH = height / 2;
@@ -557,5 +568,62 @@ public class AJCompress {
         }
 
         return mQuality;
+    }
+
+    private boolean copyFile(String fromPath, String toPath) {
+        if (TextUtils.isEmpty(fromPath) || TextUtils.isEmpty(toPath)) {
+            return false;
+        }
+
+        FileInputStream is = null;
+        FileOutputStream os = null;
+        try {
+            File from = new File(fromPath);
+            File to = new File(toPath);
+            if (null == from || !from.exists()) {
+                return false;
+            }
+            if (null == to) {
+                return false;
+            }
+
+            is = new FileInputStream(from);
+            if (!to.exists()) {
+                to.createNewFile();
+            }
+            os = new FileOutputStream(to);
+            copyFileFast(is, os);
+
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        } finally {
+            closeIO(is, os);
+        }
+
+        return false;
+    }
+
+    private void copyFileFast(FileInputStream is,
+                                    FileOutputStream os) throws IOException {
+        FileChannel in = is.getChannel();
+        FileChannel out = os.getChannel();
+        in.transferTo(0, in.size(), out);
+    }
+
+    private void closeIO(Closeable... closeables) {
+        if (null == closeables || closeables.length <= 0) {
+            return;
+        }
+        for (Closeable cb : closeables) {
+            try {
+                if (null == cb) {
+                    continue;
+                }
+                cb.close();
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+            }
+        }
     }
 }
