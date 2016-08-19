@@ -40,6 +40,7 @@ public class AJCompress {
     private boolean mIsAutoQuality = true;
 
     // 单位为kb
+    private final int SIZE_LEVEL_80 = 80;
     private final int SIZE_LEVEL_100 = 100;
     private final int SIZE_LEVEL_150 = 150;
     private final int SIZE_LEVEL_200 = 200;
@@ -284,7 +285,7 @@ public class AJCompress {
             String thumbPath = mCacheDir.getAbsolutePath() + "/" + System.currentTimeMillis();
 
             long length = file.length()/1024;
-            if (length < SIZE_LEVEL_100) {
+            if (length < SIZE_LEVEL_80) {
                 if (copyFile(filePath, thumbPath)) {
                     return new File(thumbPath);
                 }
